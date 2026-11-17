@@ -3,7 +3,7 @@ import "./globals.css";
 import AppearanceProvider from "./appearance-provider";
 
 export const metadata: Metadata = {
-  title: "FFXIV Songbook",
+  title: "Siren's Call Song Request Book",
   description: "A customizable song request program for Final Fantasy XIV bards.",
   robots: { index: false, follow: false },
   icons: {

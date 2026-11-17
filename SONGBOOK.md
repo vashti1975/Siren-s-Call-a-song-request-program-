@@ -1,4 +1,4 @@
-# Basic FFXIV Songbook
+# Siren's Call Song Request Book
 
 Reusable application with an empty catalog, neutral colors and a generic moogle chibi. Personal songs, lists, saved filename matches, branding and account grants are excluded.
 

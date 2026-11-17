@@ -1,4 +1,4 @@
-# FFXIV Songbook Starter
+# Siren's Call Song Request Book
 
 A basic, customizable song-request program for Final Fantasy XIV bards and bard bands.
 
