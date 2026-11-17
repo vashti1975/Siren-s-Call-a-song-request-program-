@@ -1,21 +1,37 @@
-SONGBOOK SYNC — SOURCE STARTER
+SIREN'S CALL SONG REQUEST BOOK — DALAMUD COMPANION
 
-Build the companion on Windows using .NET 10 and your installed Dalamud libraries:
-  dotnet build SongbookSync.csproj -c Release -p:DalamudLibPath="C:\path\to\Dalamud"
+Version 1.2.0, internal ID SongbookSync. Requires MidiBard 2 on the lead bard
+and a hosted songbook. The website remains the listener request page.
 
-Install the built SongbookSync.dll with SongbookSync.json in a permanent folder. In /xlsettings > Experimental > Dev Plugin Locations, add the DLL path. Enable it in /xlplugins > Dev Tools. Install only on the lead bard, with MidiBard 2 enabled.
+NORMAL INSTALLER (after a compiled release is tested and publicly hosted)
+1. Add the published pluginmaster.json URL in /xlsettings > Experimental >
+   Custom Plugin Repositories. A private GitHub source URL will not work.
+2. Find Siren's Call Song Request Book in /xlplugins and install it.
+3. Generate a connection key in your owner songbook, then copy its full command:
+   /songbooksync https://YOUR-SONGBOOK-HOST TOKEN
 
-Open your deployed songbook, expand MidiBard Sync, generate a connection key and copy the full command:
-  /songbooksync https://YOUR-SONGBOOK-HOST TOKEN
+MIGRATING FROM A DEV PLUGIN
+Before removing or disabling anything, keep a backup of your connection.json
+in the SongbookSync plugin configuration folder. Do not post this file: it
+contains your pairing key. Disable the old Dev Tools instance and remove its
+Dev Plugin Locations entry so that only one instance runs. Install the normal
+release, check /songbooksync status and re-pair from your owner page if needed.
+The internal plugin ID and command stay unchanged. Keep your old files until
+one-song playback, request clearing and announcements have been tested.
 
-The website URL is configurable; no personal or production website is hardcoded. HTTPS is required. Keep the key private.
+SOURCE BUILD (for maintainers)
+Install .NET 10 SDK and run FFXIV with Dalamud at least once, then from this
+bridge directory: dotnet build SongbookSync.csproj -c Release
+The official Dalamud.NET.Sdk/15.0.0 generates SongbookSync/latest.zip under
+bin. To use a custom library folder, set DALAMUD_HOME or pass
+-p:DalamudLibPath="C:\path\to\Dalamud".
 
-/s covers requested/named/ordinary announcements. Commands:
-  /songbooksync status
-  /songbooksync announcements off
-  /songbooksync announcements on
-  /songbooksync disconnect
+The GitHub workflow builds on Windows and retains a private artifact. It does
+not publish files, make the repository public or provide an installer URL.
+See docs/PLUGIN-INSTALLER.md in the repository for packaging and release steps.
+The source ZIP is source code, not the ZIP installed through Dalamud.
 
-The owner website can omit requester names from say announcements and revoke keys. Filename matches are created for your own songs after pairing. No MIDI music or song list is provided.
-
-Source targets Dalamud API 15 and .NET 10. Rebuild/adapt for later game/plugin versions if needed. Actual loading and chat delivery must be tested in the user's Windows client.
+Commands: /songbooksync status; /songbooksync announcements on;
+/songbooksync announcements off; /songbooksync disconnect
+Website Disconnect revokes the server key. HTTPS is required for pairing.
+No songs, music files, saved matches or real pairing keys are included.

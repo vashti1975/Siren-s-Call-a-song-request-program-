@@ -11,7 +11,7 @@ export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=
  return <details className="midibard-sync">
   <summary>♫ MidiBard Sync <span>{state?.connection?.lastSeen?'Connection received':state?.connection?.paired?'Waiting for companion':'Set up automatic played labels'}{state&&<> · {state.matchedSongCount} of {songs.length} songs matched · {state.matches?.length||0} saved filenames{state.unmatched.length>0&&<> · {state.unmatched.length} to match</>}</>}</span></summary>
   <div className="midibard-content" role="region" aria-label="MidiBard Sync controls" tabIndex={0}>
-   <p><strong>Companion update · v1.1.0</strong> — <a href="/SongbookSync-source.zip" download>Download Songbook Sync source</a> for automatic /s song announcements and live Playing now labels. Build the source on Windows with .NET 10 and your Dalamud libraries; see the included setup guide.</p>
+   <p><strong>Companion source · v1.2.0</strong> — <a href="/SongbookSync-source.zip" download>Download Songbook Sync source</a> for automatic /s song announcements and live Playing now labels. A normal-installer release is being prepared. Until it is tested and published, maintainers can build this source with .NET 10 and Dalamud; see the setup guide.</p>
    {state?.connection?.lastSeen&&<p className="sync-last-contact">Last contact: {new Date(state.connection.lastSeen).toLocaleString()}.{state.connection.lastFile&&<><br/>Last detected: <strong>{state.connection.lastFile}</strong> — {state.connection.lastMatch?`matched to ${state.connection.lastMatch}`:'needs matching below'}.</>}</p>}
    {!!state?.unmatched.length?<section aria-labelledby="sync-match-title">
     <h4 id="sync-match-title">Match detected songs ({state.unmatched.length})</h4>
@@ -40,7 +40,7 @@ export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=
     <ol>
      <li><a href="/SongbookSync-source.zip" download>Download the companion source</a>, then build it using the included guide. Install the resulting DLL from a permanent folder.</li>
      <li>In FFXIV, open <code>/xlsettings</code> → <strong>Experimental</strong>. Under <strong>Dev Plugin Locations</strong>, add the full path to <code>SongbookSync.dll</code> in that folder.</li>
-     <li>Open <code>/xlplugins</code> → <strong>Dev Tools</strong> and enable <strong>Songbook Sync</strong>. If your menu labels differ, see the included setup guide.</li>
+     <li>Open <code>/xlplugins</code> → <strong>Dev Tools</strong> and enable <strong>Siren’s Call Song Request Book</strong>. If your menu labels differ, see the included setup guide.</li>
      <li>Generate a connection key below, then paste the command into the game chat. The companion handles this command locally.</li>
     </ol>
     <div className="queue-actions">
