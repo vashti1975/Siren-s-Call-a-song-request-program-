@@ -1,0 +1,2 @@
+export function formatDuration(seconds:number){const total=Math.max(0,Math.ceil(seconds));return `${Math.floor(total/60)}:${String(total%60).padStart(2,'0')}`;}
+export function parseDuration(value:string){if(!value.trim())return null;const m=value.trim().match(/^(\d{1,4}):([0-5]\d)$/);if(!m)return undefined;const seconds=Number(m[1])*60+Number(m[2]);return seconds>0&&seconds<=86400?seconds:undefined;}

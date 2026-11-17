@@ -1,0 +1,13 @@
+{
+  "Author": "Songbook",
+  "Name": "Songbook Sync",
+  "InternalName": "SongbookSync",
+  "AssemblyVersion": "1.1.0.0",
+  "Description": "Syncs MidiBard 2 playback with the Songbook Songbook, shows Playing now, and announces title, artist and request credits in /s chat. Install only on your lead bard.",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Punchline": "Live song status and automatic say announcements.",
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false
+}

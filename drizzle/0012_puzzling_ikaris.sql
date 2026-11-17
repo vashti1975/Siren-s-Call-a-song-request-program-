@@ -1,0 +1,1 @@
+ALTER TABLE `song_edits` ADD `removed_at` integer;

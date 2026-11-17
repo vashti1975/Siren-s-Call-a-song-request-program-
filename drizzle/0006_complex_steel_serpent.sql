@@ -1,0 +1,1 @@
+ALTER TABLE `listener_requests` ADD `requester_name` text;
