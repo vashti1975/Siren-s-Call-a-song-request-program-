@@ -1,0 +1,72 @@
+name: Build Siren's Call plugin
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bridge/**'
+      - 'bridge-tests/**'
+      - 'scripts/package-plugin.py'
+      - 'scripts/test-plugin-package.py'
+      - '.github/workflows/plugin-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'bridge/**'
+      - 'bridge-tests/**'
+      - 'scripts/package-plugin.py'
+      - 'scripts/test-plugin-package.py'
+      - '.github/workflows/plugin-build.yml'
+  workflow_dispatch:
+    inputs:
+      public_base_url:
+        description: 'Optional approved HTTPS folder for latest.zip and pluginmaster.json'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download pinned official Dalamud API 15 libraries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ref = '38d5859b17b014bfdbfbbd5d60d9433333ce330b'
+          Invoke-WebRequest "https://raw.githubusercontent.com/goatcorp/dalamud-distrib/$ref/latest.zip" -OutFile "$env:RUNNER_TEMP/dalamud.zip"
+          $env:DALAMUD_HOME = "$env:RUNNER_TEMP/dalamud"
+          Expand-Archive "$env:RUNNER_TEMP/dalamud.zip" $env:DALAMUD_HOME
+          "DALAMUD_HOME=$env:DALAMUD_HOME" >> $env:GITHUB_ENV
+      - name: Test playback and announcements
+        run: dotnet run --project bridge-tests/test.csproj --configuration Release
+      - name: Test installer packaging
+        run: python scripts/test-plugin-package.py
+      - name: Build plugin with official packaging SDK
+        run: dotnet build bridge/SongbookSync.csproj --configuration Release
+      - name: Validate and prepare installer files
+        env:
+          PUBLIC_BASE_URL: ${{ inputs.public_base_url }}
+        shell: pwsh
+        run: |
+          $packageArguments = @('scripts/package-plugin.py', '--build-root', 'bridge/bin', '--output', 'plugin-dist')
+          if ($env:PUBLIC_BASE_URL) { $packageArguments += @('--public-base-url', $env:PUBLIC_BASE_URL) }
+          python @packageArguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Save private build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SirensCall-SongbookSync
+          path: plugin-dist/*
+          if-no-files-found: error
+          retention-days: 30

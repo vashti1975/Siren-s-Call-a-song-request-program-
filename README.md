@@ -11,7 +11,7 @@ This starter has an **empty catalog**, a simple slate-and-blue theme, and a gene
 - Optional listener profiles, favorites, music-note rewards, milestone stickers and simple collectible reward slots.
 - A compact Playing at feature with city choices, venue addresses and pasted FFXIV pin coordinates.
 - **Appearance controls** on the owner page: change title, subtitle, colors, logo, background image and default chibi, and optionally enable the animated music background. Images can be uploaded or supplied by URL.
-- Optional MidiBard companion source with a configurable deployment URL.
+- Optional Dalamud companion plugin source, normal-installer packaging, and a private Windows build workflow with a configurable songbook URL.
 - Database migrations, dependency lockfile, documentation and tests using invented fixtures.
 
 ![Default generic chibi](public/default-chibi.png)
@@ -43,6 +43,7 @@ npm run build
 - [Architecture](docs/ARCHITECTURE.md)
 - [Rebuilding notes](docs/BACKUP-AND-RESTORE.md)
 - [MidiBard companion](docs/MIDIBARD.md)
+- [Plugin build, installer and migration](docs/PLUGIN-INSTALLER.md)
 
 The web app uses React, TypeScript, Vinext/Vite, Cloudflare Workers and D1. Shared requests and protected owner actions require server hosting; GitHub Pages alone is insufficient. Sites supplies the production ChatGPT authentication integration; another host needs an equivalent trusted identity layer.
 

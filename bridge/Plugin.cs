@@ -43,7 +43,7 @@ public sealed class Plugin : IDalamudPlugin {
  double? Position(){var time=bardType?.GetProperty("CurrentPlaybackTime",Flags)?.GetValue(null);return time is TimeSpan span?span.TotalSeconds:null;}
  void Command(string command,string args){
   args=args.Trim();
-  if(args=="status"||args==""){chat.Print("[Songbook Sync v1.1.0] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
+  if(args=="status"||args==""){chat.Print("[Siren's Call v1.2.0] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
   if(args=="announcements on"||args=="announcements off"){announcements=args.EndsWith(" on");Save();chat.Print("[Songbook Sync] Say announcements "+(announcements?"on.":"off."));return;}
   if(args=="disconnect"){token="";File.Delete(configPath);tracker.Baseline(CurrentPlayback());status="Disconnected.";chat.Print("[Songbook Sync] "+status);return;}
   var pair=args.Split(' ',StringSplitOptions.RemoveEmptyEntries);

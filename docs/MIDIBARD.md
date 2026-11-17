@@ -1,12 +1,12 @@
 # MidiBard companion
 
-**Songbook Sync v1.1.0** observes MidiBard 2 on the lead bard, reports playback, marks matching songs played, updates Playing now and optionally sends one `/s` announcement per new matched song.
+**Siren's Call Song Request Book companion v1.2.0** observes MidiBard 2 on the lead bard, reports playback, marks matching songs played, updates Playing now and optionally sends one `/s` announcement per new matched song.
 
 ## Install and pair
 
 Use `public/SongbookSync-source.zip` and [bridge/SETUP.txt](../bridge/SETUP.txt). Install only on the lead bard. It is separate from MidiBard; do not overwrite MidiBard's DLL.
 
-Build the source on Windows first, then generate a connection key in the owner page and paste `/songbooksync https://YOUR-HOST TOKEN` into FFXIV. The endpoint is configurable and no production website is hardcoded. No song list, saved filename matches or connection key is included.
+Normal installer distribution is prepared in [Plugin build, installer and migration](PLUGIN-INSTALLER.md); a tested compiled release and a public installer feed are still required. Source downloads remain available for maintainers. After installation, generate a connection key in the owner page and paste `/songbooksync https://YOUR-HOST TOKEN` into FFXIV. The endpoint is configurable and no production website is hardcoded. No song list, saved filename matches or connection key is included.
 
 | Command | Behavior |
 | --- | --- |
@@ -27,13 +27,13 @@ The owner may omit requester names from say while keeping names privately. Retri
 
 ## Build
 
-The project targets .NET 10 on Windows and the included manifest declares Dalamud API 15. It references locally installed Dalamud libraries. Later game, Dalamud or MidiBard changes may require companion changes.
+The project uses the official Dalamud.NET.Sdk 15.0.0, targeting .NET 10 on Windows and Dalamud API 15. The SDK provides packaging and references locally installed Dalamud libraries. Later game, Dalamud or MidiBard changes may require companion changes.
 
 ```powershell
 dotnet build bridge/SongbookSync.csproj -c Release -p:DalamudLibPath="C:\path\to\Dalamud"
 ```
 
-The directory needs `Dalamud.dll`, `FFXIVClientStructs.dll` and `InteropGenerator.Runtime.dll`. The default is `%APPDATA%/XIVLauncher/addon/Hooks/dev`. Package the built DLL with the manifest and setup instructions.
+The directory needs `Dalamud.dll`, `FFXIVClientStructs.dll` and `InteropGenerator.Runtime.dll`. The default is `%APPDATA%/XIVLauncher/addon/Hooks/dev`. The SDK generates a complete manifest and `SongbookSync/latest.zip`. Run `python scripts/package-plugin.py --build-root bridge/bin --output plugin-dist` to validate and prepare the installer files.
 
 ```bash
 dotnet run --project bridge-tests/test.csproj
