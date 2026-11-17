@@ -1,0 +1,11 @@
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { configureToolEnvironment } from "./tool-environment.mjs";
+const root = fileURLToPath(new URL("../", import.meta.url));
+configureToolEnvironment(root);
+if (process.argv.length > 2) throw new Error("Use npm run db:local. This helper supports local schema creation only.");
+console.log("Applying schema to the LOCAL database (.wrangler/state). No songs are seeded.");
+const result = spawnSync(process.execPath, [path.join(root,"node_modules/wrangler/bin/wrangler.js"),"d1","migrations","apply","DB","--config",path.join(root,"wrangler.local.jsonc"),"--local"], {cwd:root,stdio:"inherit"});
+if(result.error) throw result.error;
+process.exit(result.status ?? 1);

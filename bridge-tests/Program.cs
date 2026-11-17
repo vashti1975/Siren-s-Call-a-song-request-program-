@@ -1,0 +1,31 @@
+using SongbookSync;
+var internalName=PlaybackDetails.FileName(new InternalPlayback());
+if(internalName!="My Song.mid")throw new Exception("Internal MIDI filename was not detected: "+internalName);
+if(PlaybackDetails.FileName(new DisplayOnly())!="Fallback song")throw new Exception("Display name fallback failed");
+Console.WriteLine("Passed: internal MidiBard-style filename properties and display name fallback.");
+var tracker=new PlaybackTracker();
+var playback=new InternalPlayback();
+var first=tracker.Observe(playback,true,0,0)!;
+if(first.Action!="start")throw new Exception("A new song must start a session");
+if(tracker.Observe(playback,true,2,2000)!=null)throw new Exception("Frequent polls must not reannounce");
+var heartbeat=tracker.Observe(playback,true,6,6000)!;
+if(heartbeat.Action!="state"||heartbeat.EventId!=first.EventId)throw new Exception("Heartbeat must keep session identity");
+var paused=tracker.Observe(playback,false,6,8000)!;
+if(paused.Playing||paused.EventId!=first.EventId)throw new Exception("Pause must clear playing state");
+var resumed=tracker.Observe(playback,true,6,10000)!;
+if(resumed.Action!="state"||resumed.EventId!=first.EventId)throw new Exception("Resume must not create another announcement");
+tracker.Observe(playback,true,20,16000);
+tracker.Observe(playback,false,20,18000);
+var replay=tracker.Observe(playback,true,0,20000)!;
+if(replay.Action!="start"||replay.EventId==first.EventId)throw new Exception("Restarting the same MIDI must get a new announcement");
+var changed=tracker.Observe(new DisplayOnly(),true,0,22000)!;
+if(changed.Action!="start")throw new Exception("Next song must start a new session");
+tracker.Baseline(playback);
+if(tracker.Observe(playback,true,30,24000)!=null)throw new Exception("Pairing must not announce the song already playing");
+var safe=SayText.Command("By Request by Name\n/p <pos> ♪ Title — Artist ♪");
+if(!safe.StartsWith("/s ")||safe.Contains('\n')||safe.Contains('<')||safe.Contains('>'))throw new Exception("Only a single plain say command is permitted");
+var longCommand=SayText.Command(new string('曲',300));
+if(System.Text.Encoding.UTF8.GetByteCount(longCommand)>450)throw new Exception("Chat byte budget exceeded");
+Console.WriteLine("Passed: song-start identity, heartbeat, pause/resume, repeat playback, new songs, pairing baseline, fixed say channel, control/macro removal and UTF-8 byte limits.");
+class InternalPlayback {internal string FilePath=>"C:\\Music\\My Song.mid";internal string DisplayName=>"Other";}
+class DisplayOnly {internal string FilePath=>"";internal string DisplayName=>"Fallback song";}
