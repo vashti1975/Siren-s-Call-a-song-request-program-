@@ -5,7 +5,7 @@
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,
   "Punchline": "Live song status and automatic say announcements.",
-  "RepoUrl": "https://github.com/vashti1975/Siren-s-Call-a-song-request-program-",
+  "RepoUrl": "https://github.com/vashti1975/Sirens-call-Song-Request-Book",
   "Tags": ["bard", "music", "songbook", "requests"],
   "LoadRequiredState": 0,
   "LoadSync": false,

@@ -51,7 +51,7 @@ public sealed class Plugin : IDalamudPlugin {
  double? Position(){var time=bardType?.GetProperty("CurrentPlaybackTime",Flags)?.GetValue(null);return time is TimeSpan span?span.TotalSeconds:null;}
  void Command(string command,string args){
   args=args.Trim();
-  if(args=="status"||args==""){chat.Print("["+DisplayName+" v1.3.2] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
+  if(args=="status"||args==""){chat.Print("["+DisplayName+" v1.3.3] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
   if(args=="announcements on"||args=="announcements off"){announcements=args.EndsWith(" on");Save();chat.Print("["+DisplayName+"] Say announcements "+(announcements?"on.":"off."));return;}
   if(args=="disconnect"){token="";File.Delete(configPath);tracker.Baseline(CurrentPlayback());status="Disconnected.";chat.Print("["+DisplayName+"] "+status);return;}
 #if TRAMATIC_COMPANION

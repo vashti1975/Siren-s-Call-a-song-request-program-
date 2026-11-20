@@ -57,7 +57,7 @@ Licensed under AGPL-3.0 (see LICENSE). Vendored dependency notices stay with the
 Add this repository URL under `/xlsettings` → **Experimental** → **Custom Plugin Repositories**, enable it and save:
 
 ```text
-https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
+https://raw.githubusercontent.com/vashti1975/Sirens-call-Song-Request-Book/main/pluginmaster.json
 ```
 
 In `/xlplugins`, install **Siren's call Song Request Book**. The general variant uses `SongbookSync`; existing Tramatic installations use the compatible `TramaticSync` variant. Install one companion on the lead bard. When moving from a development installation, disable that copy and remove its Dev Plugin Locations entry before enabling the installed copy. Keep the saved configuration; the compatible variant retains its `TramaticSync` internal name, `/tramaticsync` command and existing key format.

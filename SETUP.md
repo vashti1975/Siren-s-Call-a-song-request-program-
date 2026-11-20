@@ -2,11 +2,11 @@
 
 ## 1. Install
 
-Install Node.js 22.13+ and Git. Clone using an account with access to this private repository:
+Install Node.js 22.13+ and Git. Clone the public repository:
 
 ```bash
-git clone https://github.com/vashti1975/Siren-s-Call-a-song-request-program-.git
-cd Siren-s-Call-a-song-request-program-
+git clone https://github.com/vashti1975/Sirens-call-Song-Request-Book.git
+cd Sirens-call-Song-Request-Book
 npm ci
 ```
 
