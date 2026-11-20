@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import './sync-controls.css';
 import type {Song} from '../lib/songs';
-const installerFeed='https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json';
+const installerFeed='https://tramatic-songbook.affectionategecko4.chatgpt.site/pluginmaster.json';
 type State={connection:null|{paired:number;lastSeen:number|null;lastFile:string|null;lastMatch:string|null;lastIgnored:boolean;refresh:null|{requestedAt:number;confirmedAt:number|null}};unmatched:{id:string;file:string}[];matches:{fileKey:string;songId:string;file:string}[];ignored:{fileKey:string;file:string}[];matchedSongCount:number};
 export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=>void}){
  const [choices,setChoices]=useState<Record<string,string>>({});

@@ -48,3 +48,5 @@ Compiled packages and the release feed appear in `plugin-dist`. `public/Songbook
 **Ignore this song** remembers an excluded filename across shows, skips matching and announcements, and excludes unresolved ignored plays from the one-hour request total. **Allow matching** restores an owner choice.
 
 References: [custom repository format](https://dalamud.dev/plugin-publishing/custom-repositories/) and [API 15 SDK](https://dalamud.dev/versions/v15/).
+
+Public installer mirror for the same compiled general and Tramatic packages: [https://tramatic-songbook.affectionategecko4.chatgpt.site/pluginmaster.json](https://tramatic-songbook.affectionategecko4.chatgpt.site/pluginmaster.json). This mirror remains usable while GitHub repository visibility is being changed.

@@ -63,3 +63,5 @@ https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program
 In `/xlplugins`, install **Siren’s Call Song Request Book** for a configurable hosted songbook, or **Tramatic Sync** when replacing the existing Tramatic development installation. Install one companion on the lead bard. Disable the development copy and remove its Dev Plugin Locations entry before enabling the installed copy. Keep the saved configuration; Tramatic Sync retains its internal name, `/tramaticsync` command and existing key format.
 
 The feed becomes usable after the first successful release build and public repository access. Each release includes compiler-built API 15 DLLs, matching manifests and checksums. In-game operation still needs verification in FFXIV. See the [installer guide](docs/PLUGIN-INSTALLER.md) for migration and recovery.
+
+Public installer mirror for the same compiled general and Tramatic packages: [https://tramatic-songbook.affectionategecko4.chatgpt.site/pluginmaster.json](https://tramatic-songbook.affectionategecko4.chatgpt.site/pluginmaster.json). This mirror remains usable while GitHub repository visibility is being changed.
