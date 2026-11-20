@@ -8,6 +8,18 @@ export type Playback={showId:string;eventId:string;songId:string|null;fileName:s
 export async function playbackState(){
  return env.DB!.prepare("SELECT show_id AS showId,event_id AS eventId,song_id AS songId,file_name AS fileName,announcement,playing,updated_at AS updatedAt FROM midibard_playback WHERE id='owner'").first<Playback>();
 }
+// A refresh may rebuild only the latest recorded event in the current show.
+// Reuse its identity without recording another play or completing later requests.
+export async function restorePlaybackForRefresh(eventId:string,showId:string,playing:boolean,requestedAt:number,now:number){
+ const event=await env.DB!.prepare('SELECT id,file_name AS file,song_id AS songId FROM midibard_events WHERE show_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1').bind(showId).first<{id:string;file:string;songId:string|null}>();
+ if(event?.id!==eventId)return null;
+ const state=await playbackState();
+ const song=(await catalog()).find(s=>s.id===event.songId);
+ const announcement=state?.eventId===eventId&&state.showId===showId?state.announcement:null;
+ await env.DB!.prepare("INSERT INTO midibard_playback (id,show_id,event_id,song_id,file_name,announcement,playing,updated_at) SELECT 'owner',?,?,?,?,?,?,? WHERE EXISTS (SELECT 1 FROM midibard_connection_refresh WHERE id='owner' AND requested_at=? AND confirmed_at IS NULL) AND EXISTS (SELECT 1 FROM show_state WHERE id='current' AND show_id=?) AND ?=(SELECT id FROM midibard_events WHERE show_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1) ON CONFLICT(id) DO UPDATE SET show_id=excluded.show_id,event_id=excluded.event_id,song_id=excluded.song_id,file_name=excluded.file_name,announcement=excluded.announcement,playing=excluded.playing,updated_at=excluded.updated_at").bind(showId,eventId,song?.id||null,event.file,announcement,playing?1:0,now,requestedAt,showId,eventId,showId).run();
+ const saved=await playbackState();
+ return saved?.eventId===eventId&&saved.showId===showId?saved:null;
+}
 export function livePlayback(state:Playback|null,showId:string,now=Date.now()){
  return !!state&&state.showId===showId&&!!state.playing&&state.updatedAt>=now-playbackLeaseMs;
 }

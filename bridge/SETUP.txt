@@ -1,21 +1,19 @@
-SONGBOOK SYNC — SOURCE STARTER
+SIREN'S CALL / TRAMATIC SYNC 1.3.0
 
-Build the companion on Windows using .NET 10 and your installed Dalamud libraries:
-  dotnet build SongbookSync.csproj -c Release -p:DalamudLibPath="C:\path\to\Dalamud"
+NORMAL INSTALL
+Add this URL under /xlsettings > Experimental > Custom Plugin Repositories:
+https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
+Enable and save the repository. In /xlplugins install Siren's Call Song Request Book for a configurable hosted book, or Tramatic Sync for the existing Tramatic installation. Use one companion on your lead bard and keep MidiBard 2 enabled.
 
-Install the built SongbookSync.dll with SongbookSync.json in a permanent folder. In /xlsettings > Experimental > Dev Plugin Locations, add the DLL path. Enable it in /xlplugins > Dev Tools. Install only on the lead bard, with MidiBard 2 enabled.
+MIGRATE FROM DEV TOOLS
+Disable the development copy and remove its Dev Plugin Locations entry before enabling the normal installation. Keep connection.json and your old files locally. Tramatic Sync preserves its internal identity, /tramaticsync command, endpoint and saved key format. No replacement key is required when the existing configuration is present.
 
-Open your deployed songbook, expand MidiBard Sync, generate a connection key and copy the full command:
-  /songbooksync https://YOUR-SONGBOOK-HOST TOKEN
+PAIRING
+General companion: /songbooksync HTTPS_URL TOKEN
+Tramatic companion: /tramaticsync TOKEN
+Copy the full command from your owner page. Do not share it. Routine issues: use Refresh connection in the songbook, enable both plugins, and start a new song. Use /songbooksync status or /tramaticsync status as appropriate.
 
-The website URL is configurable; no personal or production website is hardcoded. HTTPS is required. Keep the key private.
+Say announcements can be disabled with the corresponding command followed by announcements off. The setting is saved.
 
-/s covers requested/named/ordinary announcements. Commands:
-  /songbooksync status
-  /songbooksync announcements off
-  /songbooksync announcements on
-  /songbooksync disconnect
-
-The owner website can omit requester names from say announcements and revoke keys. Filename matches are created for your own songs after pairing. No MIDI music or song list is provided.
-
-Source targets Dalamud API 15 and .NET 10. Rebuild/adapt for later game/plugin versions if needed. Actual loading and chat delivery must be tested in the user's Windows client.
+BUILD AND VALIDATION
+Requires .NET 10 and Dalamud API 15 libraries. See docs/PLUGIN-INSTALLER.md and the Windows workflow. Installer packages contain only the compiled companion, matching manifest and AGPL license. They do not bundle MidiBard. Actual Playing now, request completion, /s delivery, pause/resume and replay behavior must still be verified inside FFXIV.

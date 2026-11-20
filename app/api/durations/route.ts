@@ -13,7 +13,8 @@ export async function POST(request:Request){
  const songs=await catalog();
  const {results:aliases}=await env.DB!.prepare('SELECT file_key AS fileKey,song_id AS songId FROM midibard_aliases').all<{fileKey:string;songId:string}>();
  const {results:resets}=await env.DB!.prepare('SELECT file_key AS fileKey FROM midibard_match_resets').all<{fileKey:string}>();
- const saved=new Map(aliases.map(a=>[a.fileKey,a.songId])),blocked=new Set(resets.map(r=>r.fileKey));
+ const {results:ignored}=await env.DB!.prepare('SELECT file_key AS fileKey FROM midibard_ignored_files').all<{fileKey:string}>();
+ const saved=new Map(aliases.map(a=>[a.fileKey,a.songId])),blocked=new Set([...resets,...ignored].map(r=>r.fileKey));
  const lengths=new Map<string,number>(),unmatched:string[]=[],conflicts:string[]=[];
  for(const entry of parsed.data.files){const key=fileKey(entry.file),song=blocked.has(key)?undefined:matchSong(entry.file,songs,saved.get(key));if(!song){unmatched.push(entry.file);continue;}const group=songKey(song),old=lengths.get(group);if(old&&old!==entry.seconds)conflicts.push(entry.file);lengths.set(group,Math.max(old||0,entry.seconds));}
  // Keep the longest imported version, including files in earlier batches.

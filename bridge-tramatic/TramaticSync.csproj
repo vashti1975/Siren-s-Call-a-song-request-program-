@@ -1,0 +1,14 @@
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <AssemblyName>TramaticSync</AssemblyName>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DefineConstants>$(DefineConstants);TRAMATIC_COMPANION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../bridge/*.cs" Link="%(Filename)%(Extension)" />
+    <Content Include="../bridge/LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

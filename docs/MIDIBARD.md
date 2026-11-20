@@ -1,42 +1,25 @@
 # MidiBard companion
 
-**Songbook Sync v1.1.0** observes MidiBard 2 on the lead bard, reports playback, marks matching songs played, updates Playing now and optionally sends one `/s` announcement per new matched song.
+Install through the normal Dalamud plugin installer using the [installer and migration guide](PLUGIN-INSTALLER.md). The shared custom repository offers the configurable **Siren’s Call Song Request Book** companion and the compatible **Tramatic Sync** companion.
 
-## Install and pair
+The companion observes MidiBard 2 playback and sends filenames and playing state to a hosted songbook. It does not replace MidiBard or include its binaries or music. Run one companion on the lead bard. Source and the compiled releases use AGPL-3.0; third-party dependencies keep their own licenses.
 
-Use `public/SongbookSync-source.zip` and [bridge/SETUP.txt](../bridge/SETUP.txt). Install only on the lead bard. It is separate from MidiBard; do not overwrite MidiBard's DLL.
+## Pair once
 
-Build the source on Windows first, then generate a connection key in the owner page and paste `/songbooksync https://YOUR-HOST TOKEN` into FFXIV. The endpoint is configurable and no production website is hardcoded. No song list, saved filename matches or connection key is included.
+For the general companion, copy `/songbooksync HTTPS_URL TOKEN` from your own owner page. Its HTTPS songbook origin is configurable and saved with the private key. For the Tramatic companion, `/tramaticsync TOKEN` continues to use the existing endpoint and saved configuration format. Keep the command and connection.json private.
 
-| Command | Behavior |
-| --- | --- |
-| `/songbooksync status` | Connection status |
-| `/songbooksync announcements off` | Disable say messages, keep website sync |
-| `/songbooksync announcements on` | Enable say messages |
-| `/songbooksync disconnect` | Remove the PC's connection |
+Saved automatic and manual filename matches persist across shows. A filename can be reset for another owner choice. **Ignore this song** excludes a solo filename; **Allow matching** lets the owner choose a match later. Ignored files do not create announcements or live request-book song labels. Unresolved ignored events are excluded from the one-hour request total.
 
-Website Disconnect revokes the server key. Pairing elsewhere needs that deployment's URL and key.
+## Recover with the same key
 
-## Announcements
+Use **MidiBard Sync → Setup & connection → Refresh connection** for a stale connection. It keeps the key, matches, ignored files, requests and history. The page waits for an accepted playback update before showing confirmation. Keep MidiBard 2 and the companion enabled, then start a new song if it remains waiting. A lost playback row can be rebuilt only from the latest event in the current show, without recording another play or clearing later requests.
 
-- Requested: `By Request ♪ Title — Artist ♪`
-- Named request: `By Request by Player Name ♪ Title — Artist ♪`
-- Other song: `♪ Title — Artist ♪`
+Key replacement is under **Connection key options** and is intended for a missing, revoked or exposed key. The website cannot start a disabled plugin. If the key was revoked or the local configuration deleted, pair again with the matching command.
 
-The owner may omit requester names from say while keeping names privately. Retries and heartbeats do not repeat announcements. Pause/stop clears Playing now; disconnects expire its lease in about 20 seconds. Played history stays saved.
+## Playback and announcements
 
-## Build
+Matched starts mark the relevant song played and complete only requests already waiting at the start. Live Playing now expires after about 20 seconds without updates. Pause/stop clears the live label, and resume does not repeat an announcement. A replay or new song gets its own event identity.
 
-The project targets .NET 10 on Windows and the included manifest declares Dalamud API 15. It references locally installed Dalamud libraries. Later game, Dalamud or MidiBard changes may require companion changes.
+Optional `/s` announcements include title and artist, plus By Request and any supplied names when the owner’s name switch is enabled. The companion’s `announcements on` / `announcements off` command is saved locally. Only one companion should run to avoid duplicate announcements.
 
-```powershell
-dotnet build bridge/SongbookSync.csproj -c Release -p:DalamudLibPath="C:\path\to\Dalamud"
-```
-
-The directory needs `Dalamud.dll`, `FFXIVClientStructs.dll` and `InteropGenerator.Runtime.dll`. The default is `%APPDATA%/XIVLauncher/addon/Hooks/dev`. Package the built DLL with the manifest and setup instructions.
-
-```bash
-dotnet run --project bridge-tests/test.csproj
-```
-
-Web/database checks cover matching, pairing and playback without FFXIV. Actual loading/chat delivery requires the Windows game client. MIDI music files are not included; this project stores metadata and filename matches.
+Build and packaging tests run in the Windows release workflow. Actual FFXIV chat delivery and installation migration require a live check in the game; keep the previous local files until that succeeds.

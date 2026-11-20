@@ -6,16 +6,27 @@ import { noteAwardStatement } from './listener';
 export async function syncTables(){
  await env.DB!.batch([
   env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_connection (id TEXT PRIMARY KEY, token_hash TEXT, last_seen INTEGER, last_file TEXT, last_match TEXT)'),
+  env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_connection_refresh (id TEXT PRIMARY KEY NOT NULL, requested_at INTEGER NOT NULL, confirmed_at INTEGER)'),
   env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_aliases (file_key TEXT PRIMARY KEY, song_id TEXT NOT NULL)'),
   env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_match_resets (file_key TEXT PRIMARY KEY)'),
+  env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_ignored_files (file_key TEXT PRIMARY KEY NOT NULL, file_name TEXT NOT NULL)'),
   env.DB!.prepare('CREATE TABLE IF NOT EXISTS midibard_events (id TEXT PRIMARY KEY, show_id TEXT NOT NULL, file_name TEXT NOT NULL, song_id TEXT, created_at INTEGER NOT NULL)'),
  ]);
+}
+export async function connectionRefreshState(){
+ return env.DB!.prepare("SELECT requested_at AS requestedAt,confirmed_at AS confirmedAt FROM midibard_connection_refresh WHERE id='owner'").first<{requestedAt:number;confirmedAt:number|null}>();
+}
+export function confirmConnectionRefreshStatement(requestedAt:number,eventId:string,showId:string,now:number){
+ return env.DB!.prepare("UPDATE midibard_connection_refresh SET confirmed_at=? WHERE id='owner' AND requested_at=? AND confirmed_at IS NULL AND EXISTS (SELECT 1 FROM midibard_playback WHERE id='owner' AND event_id=? AND show_id=?)").bind(now,requestedAt,eventId,showId);
 }
 export const fileKey=(file:string)=>file.replace(/^.*[\\/]/,'').replace(/\.(mid|midi|mmsong|mml)$/i,'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 export function automaticMatchStatement(file:string,song:Song){
  const key=fileKey(file);
  // Never replace an owner's choice or recreate a match they explicitly reset.
- return env.DB!.prepare('INSERT INTO midibard_aliases (file_key,song_id) SELECT ?,? WHERE NOT EXISTS (SELECT 1 FROM midibard_match_resets WHERE file_key=?) ON CONFLICT(file_key) DO NOTHING').bind(key,song.id,key);
+ return env.DB!.prepare('INSERT INTO midibard_aliases (file_key,song_id) SELECT ?,? WHERE NOT EXISTS (SELECT 1 FROM midibard_match_resets WHERE file_key=?) AND NOT EXISTS (SELECT 1 FROM midibard_ignored_files WHERE file_key=?) ON CONFLICT(file_key) DO NOTHING').bind(key,song.id,key,key);
+}
+export async function fileIsIgnored(file:string){
+ return !!await env.DB!.prepare('SELECT file_key FROM midibard_ignored_files WHERE file_key=?').bind(fileKey(file)).first();
 }
 export async function matchWasReset(file:string){
  return !!await env.DB!.prepare('SELECT file_key FROM midibard_match_resets WHERE file_key=?').bind(fileKey(file)).first();

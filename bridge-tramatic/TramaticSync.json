@@ -1,0 +1,18 @@
+{
+  "Author": "Tramatic",
+  "Name": "Tramatic Sync",
+  "Description": "Connects MidiBard 2 to the Tramatic songbook. Preserves the existing TramaticSync connection key and /tramaticsync command when moving from Dev Tools. Install only on the lead bard.",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Punchline": "Live song status and automatic say announcements.",
+  "RepoUrl": "https://github.com/vashti1975/Siren-s-Call-a-song-request-program-",
+  "Tags": [
+    "bard",
+    "music",
+    "songbook",
+    "requests"
+  ],
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false
+}

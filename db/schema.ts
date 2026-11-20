@@ -41,3 +41,10 @@ export const midiPlayback = sqliteTable("midibard_playback", {
  songId: text("song_id"), fileName: text("file_name").notNull(), announcement: text("announcement"),
  playing: integer("playing").notNull().default(0), updatedAt: integer("updated_at").notNull(),
 });
+
+export const midiIgnoredFiles = sqliteTable("midibard_ignored_files", {
+ fileKey: text("file_key").primaryKey(), fileName: text("file_name").notNull(),
+});
+export const midiConnectionRefresh = sqliteTable("midibard_connection_refresh", {
+ id: text("id").primaryKey(), requestedAt: integer("requested_at").notNull(), confirmedAt: integer("confirmed_at"),
+});

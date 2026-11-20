@@ -48,6 +48,11 @@ bridge/bin/
 bridge/obj/
 bridge-tests/bin/
 bridge-tests/obj/
+/plugin-dist/
+__pycache__/
 
 # Safe local configuration template
 !.dev.vars.example
+
+bridge-tramatic/bin/
+bridge-tramatic/obj/

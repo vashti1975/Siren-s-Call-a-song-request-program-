@@ -10,7 +10,15 @@ using FFXIVClientStructs.FFXIV.Client.System.String;
 
 namespace SongbookSync;
 public sealed class Plugin : IDalamudPlugin {
+#if TRAMATIC_COMPANION
+ const string CommandName="/tramaticsync";
+ const string DisplayName="Tramatic Sync";
+ string Endpoint="https://tramatic-songbook.affectionategecko4.chatgpt.site/api/midibard";
+#else
+ const string CommandName="/songbooksync";
+ const string DisplayName="Siren's Call";
  string Endpoint="";
+#endif
  readonly IDalamudPluginInterface pi;
  readonly IFramework framework;
  readonly ICommandManager commands;
@@ -31,9 +39,9 @@ public sealed class Plugin : IDalamudPlugin {
  public Plugin(IDalamudPluginInterface pi,IFramework framework,ICommandManager commands,IChatGui chat,IClientState client) {
   this.pi=pi;this.framework=framework;this.commands=commands;this.chat=chat;this.client=client;
   configPath=Path.Combine(pi.GetPluginConfigDirectory(),"connection.json");
-  try{var config=JsonSerializer.Deserialize<Dictionary<string,string>>(File.ReadAllText(configPath));token=config?.GetValueOrDefault("token")??"";Endpoint=config?.GetValueOrDefault("endpoint")??"";announcements=config?.GetValueOrDefault("announcements")!="false";}catch{}
+  try{var config=JsonSerializer.Deserialize<Dictionary<string,string>>(File.ReadAllText(configPath));token=config?.GetValueOrDefault("token")??"";Endpoint=config?.GetValueOrDefault("endpoint")??Endpoint;announcements=config?.GetValueOrDefault("announcements")!="false";}catch{}
   FindBard();tracker.Baseline(IsPlaying()?CurrentPlayback():null);
-  commands.AddHandler("/songbooksync",new CommandInfo(Command){HelpMessage="Pair with /songbooksync HTTPS_URL TOKEN; status; disconnect; announcements on|off"});
+  commands.AddHandler(CommandName,new CommandInfo(Command){HelpMessage="Pair with "+CommandName+" HTTPS_URL TOKEN; status; disconnect; announcements on|off"});
   framework.Update+=Update;
  }
  void Save(){Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);File.WriteAllText(configPath,JsonSerializer.Serialize(new Dictionary<string,string>{{"token",token},{"endpoint",Endpoint},{"announcements",announcements?"true":"false"}}));}
@@ -43,9 +51,12 @@ public sealed class Plugin : IDalamudPlugin {
  double? Position(){var time=bardType?.GetProperty("CurrentPlaybackTime",Flags)?.GetValue(null);return time is TimeSpan span?span.TotalSeconds:null;}
  void Command(string command,string args){
   args=args.Trim();
-  if(args=="status"||args==""){chat.Print("[Songbook Sync v1.1.0] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
+  if(args=="status"||args==""){chat.Print("["+DisplayName+" v1.3.0] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
   if(args=="announcements on"||args=="announcements off"){announcements=args.EndsWith(" on");Save();chat.Print("[Songbook Sync] Say announcements "+(announcements?"on.":"off."));return;}
   if(args=="disconnect"){token="";File.Delete(configPath);tracker.Baseline(CurrentPlayback());status="Disconnected.";chat.Print("[Songbook Sync] "+status);return;}
+#if TRAMATIC_COMPANION
+  if(args.Length==64&&args.All(Uri.IsHexDigit))args=new Uri(Endpoint).GetLeftPart(UriPartial.Authority)+" "+args;
+#endif
   var pair=args.Split(' ',StringSplitOptions.RemoveEmptyEntries);
   if(pair.Length!=2||!Uri.TryCreate(pair[0],UriKind.Absolute,out var target)||target.Scheme!="https"||!string.IsNullOrEmpty(target.UserInfo)||pair[1].Length!=64||!pair[1].All(Uri.IsHexDigit)){chat.Print("[Songbook Sync] Copy the full connection command from your owner songbook.");return;}
   Endpoint=new Uri(target.GetLeftPart(UriPartial.Authority)+"/api/midibard").AbsoluteUri;token=pair[1];Save();FindBard();tracker.Baseline(IsPlaying()?CurrentPlayback():null);
@@ -58,7 +69,7 @@ public sealed class Plugin : IDalamudPlugin {
    FindBard();if(bardType==null){status="Waiting for MidiBard 2.";return;}
    var update=tracker.Observe(CurrentPlayback(),IsPlaying(),Position(),DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
    if(update!=null){if(update.Playing&&remoteEventId!=update.EventId)update=update with{Action="start"};_=Send(update);}
-  }catch{status="Unable to read MidiBard 2 playback. Use /songbooksync status after reloading both plugins.";}
+  }catch{status="Unable to read MidiBard 2 playback. Use "+CommandName+" status after reloading both plugins.";}
  }
  async Task Send(PlaybackUpdate? update){
   busy=true;var activeToken=token;
@@ -66,7 +77,7 @@ public sealed class Plugin : IDalamudPlugin {
    if(update==null||update.Action=="start"){
     using var get=new HttpRequestMessage(HttpMethod.Get,Endpoint);get.Headers.Authorization=new AuthenticationHeaderValue("Bearer",activeToken);
     using var response=await http.SendAsync(get,stop.Token);
-    if(!response.IsSuccessStatusCode){status="Connection rejected. Generate a new connection key in your songbook.";return;}
+    if(!response.IsSuccessStatusCode){status=response.StatusCode==System.Net.HttpStatusCode.Unauthorized?"The saved key was not accepted. Check the connection in your songbook.":"Songbook unavailable. Your key is kept; use Refresh connection and try the next song.";return;}
     using var data=JsonDocument.Parse(await response.Content.ReadAsStringAsync(stop.Token));
     if(update==null){status="Connected. Waiting for the next song to start.";return;}
     eventShowId=data.RootElement.GetProperty("showId").GetString()??"";
@@ -86,12 +97,12 @@ public sealed class Plugin : IDalamudPlugin {
     });
    }
   }catch(OperationCanceledException){if(!stop.IsCancellationRequested)status="Connection timed out. Check your internet connection.";}
-   catch{status="Could not update the songbook or say announcement. Use /songbooksync status.";}
+   catch{status="Could not update the songbook or say announcement. Use "+CommandName+" status.";}
    finally{busy=false;}
  }
  static unsafe bool Say(string text){
   var ui=UIModule.Instance();if(ui==null)return false;
   using var message=new Utf8String(SayText.Command(text));ui->ProcessChatBoxEntry(&message);return true;
  }
- public void Dispose(){framework.Update-=Update;commands.RemoveHandler("/songbooksync");stop.Cancel();http.Dispose();}
+ public void Dispose(){framework.Update-=Update;commands.RemoveHandler(CommandName);stop.Cancel();http.Dispose();}
 }

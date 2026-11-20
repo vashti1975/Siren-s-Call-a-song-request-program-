@@ -1,10 +1,10 @@
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
-import { authorized,fileKey,matchSong,playStatements,automaticMatchStatement,matchWasReset } from '../../../lib/midibard';
+import { authorized,fileKey,matchSong,playStatements,automaticMatchStatement,matchWasReset,fileIsIgnored,connectionRefreshState,confirmConnectionRefreshStatement } from '../../../lib/midibard';
 import { catalog } from '../../../lib/catalog';
 import { currentShow } from '../../../lib/show';
 import { includeRequesterNamesInSay } from '../../../lib/request-settings';
-import { playbackState,livePlayback,waitingForSong,announcementText,sayAnnouncement } from '../../../lib/playback';
+import { playbackState,livePlayback,waitingForSong,announcementText,sayAnnouncement,restorePlaybackForRefresh } from '../../../lib/playback';
 const headers={'Cache-Control':'no-store'};
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
@@ -22,31 +22,44 @@ export async function POST(request:Request){
  if(Math.abs(now-e.startedAt)>60000||e.showId!==await currentShow())return Response.json({error:'Stale show or event'},{status:409,headers});
  if(e.action==='state'){
   if(typeof e.playing!=='boolean')return Response.json({error:'Playback state required'},{status:400,headers});
-  const state=await playbackState();
+  const refresh=await connectionRefreshState();
+  let state=await playbackState();
+  if((!state||state.eventId!==e.eventId||state.showId!==e.showId)&&refresh&&refresh.confirmedAt===null)state=await restorePlaybackForRefresh(e.eventId,e.showId,e.playing,refresh.requestedAt,now);
   if(!state||state.eventId!==e.eventId||state.showId!==e.showId)return Response.json({error:'Playback has changed'},{status:409,headers});
   await env.DB!.batch([
    env.DB!.prepare("UPDATE midibard_playback SET playing=?,updated_at=? WHERE id='owner' AND event_id=? AND show_id=?").bind(e.playing?1:0,now,e.eventId,e.showId),
    env.DB!.prepare("UPDATE midibard_connection SET last_seen=? WHERE id='owner'").bind(now),
+   ...(refresh?[confirmConnectionRefreshStatement(refresh.requestedAt,e.eventId,e.showId,now)]:[]),
   ]);
   return Response.json({ok:true,matched:!!state.songId,announcement:e.playing?await sayAnnouncement(state):null},{headers});
  }
  if(!e.file)return Response.json({error:'Filename required'},{status:400,headers});
  const existing=await env.DB!.prepare('SELECT song_id AS songId FROM midibard_events WHERE id=?').bind(e.eventId).first<{songId:string|null}>();
  if(existing){
-  const state=await playbackState();
+  const refresh=await connectionRefreshState();
+  let state=await playbackState();
+  if(refresh&&refresh.confirmedAt===null){
+   const restored=await restorePlaybackForRefresh(e.eventId,e.showId,e.playing!==false,refresh.requestedAt,now);
+   if(restored){state=restored;await env.DB!.batch([
+    env.DB!.prepare("UPDATE midibard_connection SET last_seen=? WHERE id='owner'").bind(now),
+    confirmConnectionRefreshStatement(refresh.requestedAt,e.eventId,e.showId,now),
+   ]);}
+  }
   // A retry never completes newer requests or takes over a later song.
   return Response.json({ok:true,matched:!!existing.songId,announcement:state?.eventId===e.eventId&&livePlayback(state,e.showId)?await sayAnnouncement(state):null},{headers});
  }
  const songs=await catalog();
  const alias=await env.DB!.prepare('SELECT song_id AS songId FROM midibard_aliases WHERE file_key=?').bind(fileKey(e.file)).first<{songId:string}>();
- const song=await matchWasReset(e.file)?undefined:matchSong(e.file,songs,alias?.songId);
+ const song=await fileIsIgnored(e.file)||await matchWasReset(e.file)?undefined:matchSong(e.file,songs,alias?.songId);
  const announcement=song?announcementText(song,await waitingForSong(song,songs,e.showId,now),await includeRequesterNamesInSay()):null;
  const statements=song?await playStatements(song,e.showId,now,e.eventId):[];
+ const refresh=await connectionRefreshState();
  await env.DB!.batch([
   env.DB!.prepare("INSERT INTO midibard_playback (id,show_id,event_id,song_id,file_name,announcement,playing,updated_at) SELECT 'owner',?,?,?,?,?,1,? WHERE NOT EXISTS (SELECT 1 FROM midibard_events WHERE id=?) AND EXISTS (SELECT 1 FROM show_state WHERE id='current' AND show_id=?) ON CONFLICT(id) DO UPDATE SET show_id=excluded.show_id,event_id=excluded.event_id,song_id=excluded.song_id,file_name=excluded.file_name,announcement=excluded.announcement,playing=1,updated_at=excluded.updated_at").bind(e.showId,e.eventId,song?.id||null,e.file,announcement,now,e.eventId,e.showId),
   ...(song?[automaticMatchStatement(e.file,song)]:[]),...statements,
   env.DB!.prepare("INSERT OR IGNORE INTO midibard_events (id,show_id,file_name,song_id,created_at) SELECT ?,?,?,?,? WHERE EXISTS (SELECT 1 FROM show_state WHERE id='current' AND show_id=?)").bind(e.eventId,e.showId,e.file,song?.id||null,now,e.showId),
   env.DB!.prepare("UPDATE midibard_connection SET last_seen=?, last_file=?, last_match=? WHERE id='owner' AND EXISTS (SELECT 1 FROM midibard_playback WHERE event_id=? AND show_id=?)").bind(now,e.file,song?.title||null,e.eventId,e.showId),
+  ...(refresh?[confirmConnectionRefreshStatement(refresh.requestedAt,e.eventId,e.showId,now)]:[]),
  ]);
  const saved=await playbackState();
  return Response.json({ok:true,matched:!!song,announcement:saved?.eventId===e.eventId&&livePlayback(saved,e.showId)?await sayAnnouncement(saved):null},{headers});

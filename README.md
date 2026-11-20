@@ -11,7 +11,8 @@ This starter has an **empty catalog**, a simple slate-and-blue theme, and a gene
 - Optional listener profiles, favorites, music-note rewards, milestone stickers and simple collectible reward slots.
 - A compact Playing at feature with city choices, venue addresses and pasted FFXIV pin coordinates.
 - **Appearance controls** on the owner page: change title, subtitle, colors, logo, background image and default chibi, and optionally enable the animated music background. Images can be uploaded or supplied by URL.
-- Optional MidiBard companion source with a configurable deployment URL.
+- Normal Dalamud installer support for the configurable Siren’s Call companion and the compatible Tramatic Sync variant, with Windows builds and versioned releases.
+- Persistent Ignore this song / Allow matching and same-key Refresh connection, with separate pending and confirmed connection status.
 - Database migrations, dependency lockfile, documentation and tests using invented fixtures.
 
 ![Default generic chibi](public/default-chibi.png)
@@ -43,9 +44,22 @@ npm run build
 - [Architecture](docs/ARCHITECTURE.md)
 - [Rebuilding notes](docs/BACKUP-AND-RESTORE.md)
 - [MidiBard companion](docs/MIDIBARD.md)
+- [Plugin build, installer and migration](docs/PLUGIN-INSTALLER.md)
 
 The web app uses React, TypeScript, Vinext/Vite, Cloudflare Workers and D1. Shared requests and protected owner actions require server hosting; GitHub Pages alone is insufficient. Sites supplies the production ChatGPT authentication integration; another host needs an equivalent trusted identity layer.
 
 This repository is a reusable starter. Uploading it does not modify or redeploy the original owner's songbook. The hosting manifest has no production project ID.
 
-The existing repository LICENSE is retained. Vendored dependency notices stay with their files. The default chibi is a newly generated generic asset; Final Fantasy XIV and associated game elements belong to their respective owners. This is an unofficial fan project.
+Licensed under AGPL-3.0 (see LICENSE). Vendored dependency notices stay with their files. The default chibi is a newly generated generic asset; Final Fantasy XIV and associated game elements belong to their respective owners. This is an unofficial fan project.
+
+## Dalamud installation
+
+Add this repository URL under `/xlsettings` → **Experimental** → **Custom Plugin Repositories**, enable it and save:
+
+```text
+https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
+```
+
+In `/xlplugins`, install **Siren’s Call Song Request Book** for a configurable hosted songbook, or **Tramatic Sync** when replacing the existing Tramatic development installation. Install one companion on the lead bard. Disable the development copy and remove its Dev Plugin Locations entry before enabling the installed copy. Keep the saved configuration; Tramatic Sync retains its internal name, `/tramaticsync` command and existing key format.
+
+The feed becomes usable after the first successful release build and public repository access. Each release includes compiler-built API 15 DLLs, matching manifests and checksums. In-game operation still needs verification in FFXIV. See the [installer guide](docs/PLUGIN-INSTALLER.md) for migration and recovery.

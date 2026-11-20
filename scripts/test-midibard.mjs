@@ -143,3 +143,128 @@ await switchNames(true);
 await statement("INSERT INTO listener_requests (id,song_id,visitor,created_at,show_id,requester_name) VALUES ('name-switch-three',?,'v',?,?,'Names Back On')").bind(secondSong.id,Date.now(),liveShow).run();
 assert((await (await POST(request({...hiddenStart,eventId:crypto.randomUUID()}))).json()).announcement.includes('Names Back On'));
 console.log('Passed: names on/off in real companion responses, existing event retry/heartbeat filtering, no-name request format keeps title/artist, ordinary songs unchanged, owner names remain available, and re-enabling restores future named announcements.');
+
+// Ignoring is a persistent filename choice, isolated from request-book songs.
+const soloFile='Fixture Solo Artist - Solo Version 7.mid';
+const solo={file:soloFile,eventId:crypto.randomUUID(),showId:liveShow,startedAt:Date.now()};
+assert.equal((await (await POST(request(solo))).json()).matched,false);
+globalThis.TEST_USER=null;
+assert.equal((await manage.POST(action({action:'ignore',id:solo.eventId}))).status,403);
+globalThis.TEST_USER={email:'owner@example.test'};
+assert.equal((await manage.POST(new Request('https://test/api/midibard/manage',{method:'POST',headers:{Origin:'https://other.test','Content-Type':'application/json'},body:JSON.stringify({action:'ignore',id:solo.eventId})}))).status,403);
+assert.equal((await manage.POST(action({action:'ignore',id:crypto.randomUUID()}))).status,404);
+assert.equal((await manage.POST(action({action:'ignore',id:solo.eventId}))).status,200);
+saved=await (await manage.GET()).json();
+assert(saved.ignored.some(e=>e.fileKey===fileKey(soloFile)));
+assert(!saved.unmatched.some(e=>e.file===soloFile));
+assert.equal(saved.connection.lastIgnored,true);
+assert.equal((await manage.POST(action({action:'ignore',id:solo.eventId}))).status,200,'repeated ignore is safe');
+assert.equal((await (await manage.GET()).json()).ignored.filter(e=>e.fileKey===fileKey(soloFile)).length,1);
+
+// Even a recognizable filename and a stale alias cannot override the ignore.
+await statement('INSERT INTO song_edits (id,title,artist,song_set,note,updated_at) VALUES (?,?,?,?,?,?)').bind('test-solo','Solo Version 7','Fixture Solo Artist','Pop/Soft Rock','',Date.now()).run();
+await statement('INSERT INTO midibard_aliases(file_key,song_id) VALUES (?,?)').bind(fileKey(soloFile),secondSong.id).run();
+await statement("INSERT INTO listener_requests(id,song_id,visitor,created_at,show_id) VALUES('solo-must-not-complete',?,'v',?,?)").bind(secondSong.id,Date.now(),liveShow).run();
+const soloReplay={...solo,file:'C:\\Solos\\Fixture Solo Artist - Solo Version 7.MID',eventId:crypto.randomUUID(),startedAt:Date.now()};
+assert.deepEqual(await (await POST(request(soloReplay))).json(),{ok:true,matched:false,announcement:null});
+assert.equal((await statement("SELECT played_at FROM listener_requests WHERE id='solo-must-not-complete'").first()).played_at,null);
+assert(!(await showStatuses(await catalog()))[secondSong.id].playing);
+const soloHeartbeat={action:'state',playing:true,eventId:soloReplay.eventId,showId:liveShow,startedAt:Date.now()};
+assert.deepEqual(await (await POST(request(soloHeartbeat))).json(),{ok:true,matched:false,announcement:null});
+await statement('DELETE FROM midibard_aliases WHERE file_key=?').bind(fileKey(soloFile)).run();
+saved=await (await manage.GET()).json();assert(!saved.matches.some(e=>e.fileKey===fileKey(soloFile)),'history recovery respects ignored filenames');
+assert.equal((await (await POST(request({...solo,file:'Fixture Solo Artist - Solo Version 6.mid',eventId:crypto.randomUUID(),startedAt:Date.now()}))).json()).matched,false);
+assert((await (await manage.GET()).json()).unmatched.some(e=>e.file==='Fixture Solo Artist - Solo Version 6.mid'),'ignoring one arrangement leaves other files available');
+
+// New shows keep ignores, and restoring leaves a choice for the owner.
+await statement("UPDATE show_state SET show_id='solo-next-show' WHERE id='current'").run();
+const nextSolo={...solo,showId:'solo-next-show',eventId:crypto.randomUUID(),startedAt:Date.now()};
+assert.deepEqual(await (await POST(request(nextSolo))).json(),{ok:true,matched:false,announcement:null});
+assert.equal((await manage.POST(action({action:'restore-ignored',fileKey:fileKey(soloFile)}))).status,200);
+saved=await (await manage.GET()).json();
+assert(!saved.ignored.some(e=>e.fileKey===fileKey(soloFile)));
+assert(saved.unmatched.some(e=>e.file===soloFile),'restore must not automatically select a catalog match');
+assert.equal((await manage.POST(action({action:'match',id:nextSolo.eventId,songId:secondSong.id}))).status,200);
+assert.equal((await (await POST(request({...nextSolo,eventId:crypto.randomUUID(),startedAt:Date.now()}))).json()).matched,true);
+// More than 30 ignored events cannot hide a song that still needs a choice.
+const pending={file:'Still needs a choice.mid',showId:'solo-next-show',eventId:crypto.randomUUID(),startedAt:Date.now()};
+await POST(request(pending));
+await statement('INSERT INTO midibard_ignored_files(file_key,file_name) VALUES (?,?)').bind(fileKey(soloFile),soloFile).run();
+for(let i=0;i<35;i++)await statement('INSERT INTO midibard_events(id,show_id,file_name,song_id,created_at) VALUES (?,?,?,?,?)').bind(crypto.randomUUID(),'solo-next-show',soloFile,null,Date.now()+i+1).run();
+assert((await (await manage.GET()).json()).unmatched.some(e=>e.id===pending.eventId));
+console.log('Passed: owner/origin protection, persistent ignore, repeated plays and path variants, no request completion/live label/announcement, automatic-recovery protection, separate arrangements, new shows, restore/manual rematch and ignored-event pagination.');
+
+// Refreshing keeps the actual pairing key and waits for real companion contact.
+await statement("UPDATE show_state SET show_id='refresh-show' WHERE id='current'").run();
+const refreshShow='refresh-show';
+const currentEvent={file:secondSong.title+' - '+secondSong.artist+'.mid',eventId:crypto.randomUUID(),showId:refreshShow,startedAt:Date.now()};
+await POST(request(currentEvent));
+await statement("INSERT INTO listener_requests(id,song_id,visitor,created_at,show_id) VALUES('refresh-later-request',?,'v',?,?)").bind(secondSong.id,Date.now()+1000,refreshShow).run();
+const preserved=()=>JSON.stringify({
+ token:sql.prepare("SELECT token_hash FROM midibard_connection WHERE id='owner'").get(),
+ events:sql.prepare('SELECT * FROM midibard_events ORDER BY id').all(),
+ plays:sql.prepare('SELECT * FROM show_plays ORDER BY id').all(),
+ requests:sql.prepare('SELECT * FROM listener_requests ORDER BY id').all(),
+ awards:sql.prepare('SELECT * FROM listener_note_awards ORDER BY request_id').all(),
+ matches:sql.prepare('SELECT * FROM midibard_aliases ORDER BY file_key').all(),
+ ignored:sql.prepare('SELECT * FROM midibard_ignored_files ORDER BY file_key').all(),
+});
+const beforeRefresh=preserved();
+globalThis.TEST_USER=null;assert.equal((await manage.POST(action({action:'refresh'}))).status,403);
+globalThis.TEST_USER={email:'owner@example.test'};
+assert.equal((await manage.POST(new Request('https://test/api/midibard/manage',{method:'POST',headers:{Origin:'https://other.test','Content-Type':'application/json'},body:JSON.stringify({action:'refresh'})}))).status,403);
+const refreshResponse=await manage.POST(action({action:'refresh'}));assert.equal(refreshResponse.status,200);
+assert.equal((await refreshResponse.json()).token,undefined,'refresh must not generate or return a key');
+let connection=(await (await manage.GET()).json()).connection;
+assert.equal(connection.refresh.confirmedAt,null,'a button click alone is not a successful reconnect');
+assert.equal((await showStatuses(await catalog()))[secondSong.id].playing,false,'stale live label clears while waiting');
+await GET(new Request('https://test/api/midibard',{headers:{Authorization:'Bearer '+token}}));
+assert.equal((await (await manage.GET()).json()).connection.refresh.confirmedAt,null,'a handshake alone must not claim playback recovery');
+const refreshHeartbeat={action:'state',playing:true,eventId:currentEvent.eventId,showId:refreshShow,startedAt:Date.now()};
+const refreshed=await POST(request(refreshHeartbeat));assert.equal(refreshed.status,200);
+connection=(await (await manage.GET()).json()).connection;assert(connection.refresh.confirmedAt);
+assert.equal((await showStatuses(await catalog()))[secondSong.id].playing,true);
+assert.equal(preserved(),beforeRefresh,'refresh and heartbeat preserve the key, requests, plays, awards, matches and ignored songs');
+
+// Rebuild a lost row using the existing event, with no repeated play or announcement.
+await manage.POST(action({action:'refresh'}));await statement("DELETE FROM midibard_playback WHERE id='owner'").run();
+assert.deepEqual(await (await POST(request({...refreshHeartbeat,startedAt:Date.now()}))).json(),{ok:true,matched:true,announcement:null});
+assert.equal(preserved(),beforeRefresh);
+assert((await (await manage.GET()).json()).connection.refresh.confirmedAt);
+
+// An old event cannot take over the latest event, even during recovery.
+const nextRefreshEvent={...currentEvent,eventId:crypto.randomUUID(),startedAt:Date.now()};await POST(request(nextRefreshEvent));
+const beforeSecondRefresh=preserved();
+await manage.POST(action({action:'refresh'}));await statement("DELETE FROM midibard_playback WHERE id='owner'").run();
+assert.equal((await POST(request({...refreshHeartbeat,startedAt:Date.now()}))).status,409);
+assert.equal((await (await manage.GET()).json()).connection.refresh.confirmedAt,null);
+assert.equal((await (await POST(request({...currentEvent,startedAt:Date.now()}))).json()).announcement,null);
+assert.equal((await (await manage.GET()).json()).connection.refresh.confirmedAt,null);
+const pausedRecovery={...refreshHeartbeat,eventId:nextRefreshEvent.eventId,playing:false,startedAt:Date.now()};
+assert.equal((await POST(request(pausedRecovery))).status,200);
+assert.equal((await showStatuses(await catalog()))[secondSong.id].playing,false,'recovering paused playback must keep it paused');
+assert.equal(preserved(),beforeSecondRefresh);
+
+// An existing start retry can recover the same session without charging it again.
+await manage.POST(action({action:'refresh'}));await statement("DELETE FROM midibard_playback WHERE id='owner'").run();
+assert.equal((await POST(request({...nextRefreshEvent,startedAt:Date.now()}))).status,200);
+assert((await (await manage.GET()).json()).connection.refresh.confirmedAt);
+assert.equal(preserved(),beforeSecondRefresh);
+assert.equal((await showStatuses(await catalog()))[secondSong.id].playing,true);
+
+// A new start also completes a pending refresh. Stale and invalid events do not.
+await manage.POST(action({action:'refresh'}));
+assert.equal((await POST(request({...refreshHeartbeat,eventId:nextRefreshEvent.eventId,startedAt:Date.now()-120000}))).status,409);
+assert.equal((await POST(new Request('https://test/api/midibard',{method:'POST',headers:{Authorization:'Bearer '+'b'.repeat(64),'Content-Type':'application/json'},body:JSON.stringify({...refreshHeartbeat,eventId:nextRefreshEvent.eventId,startedAt:Date.now()})}))).status,401);
+assert.equal((await (await manage.GET()).json()).connection.refresh.confirmedAt,null);
+assert.equal((await POST(request({...nextRefreshEvent,eventId:crypto.randomUUID(),startedAt:Date.now()}))).status,200);
+assert((await (await manage.GET()).json()).connection.refresh.confirmedAt);
+assert.equal((await statement("SELECT token_hash FROM midibard_connection WHERE id='owner'").first()).token_hash,await hashToken(token));
+await manage.POST(action({action:'refresh'}));
+await statement("UPDATE show_state SET show_id='after-refresh-show' WHERE id='current'").run();
+assert.equal((await POST(request({...refreshHeartbeat,eventId:nextRefreshEvent.eventId,startedAt:Date.now()}))).status,409,'refresh does not admit an old show');
+assert.equal((await POST(request({...nextRefreshEvent,showId:'after-refresh-show',eventId:crypto.randomUUID(),startedAt:Date.now()}))).status,200);
+assert((await (await manage.GET()).json()).connection.refresh.confirmedAt);
+await manage.POST(action({action:'disconnect'}));
+assert.equal((await manage.POST(action({action:'refresh'}))).status,409,'a revoked key cannot be refreshed');
+console.log('Passed: same-key refresh, owner/origin validation, honest pending/confirmed status, healthy/missing/paused session recovery, existing-start retries, no duplicate requests/plays/awards, latest-event protection, stale/invalid event rejection, show changes and disconnected-key handling.');

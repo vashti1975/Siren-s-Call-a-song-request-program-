@@ -32,7 +32,6 @@ export default function RequesterSongbook({embedded:embeddedProp=false}:{embedde
  const [songs,setSongs]=useState<Song[]>([]);
  const [nextSongId,setNextSongId]=useState<string|null>(null);
  const [requestsOpen,setRequestsOpen]=useState<boolean|null>(null);
- const [playingLocation,setPlayingLocation]=useState<PlayingLocation|null>(null);
  const [showLimit,setShowLimit]=useState<PublicBudget|null>(null);
  const [query,setQuery]=useState("");const [set,setSet]=useState("All");
  const [artist,setArtist]=useState("All"),[showFilter,setShowFilter]=useState("all");
@@ -42,7 +41,7 @@ export default function RequesterSongbook({embedded:embeddedProp=false}:{embedde
  const [selected,setSelected]=useState<Song|null>(null);const [busy,setBusy]=useState(false);const [success,setSuccess]=useState("");
  const [requestId,setRequestId]=useState("");
  const [requesterName,setRequesterName]=useState("");
- async function load(quiet=false){if(!quiet)setLoading(true);try{const r=await fetch("/api/catalog",{cache:"no-store"});if(!r.ok)throw new Error("The song list couldn’t load. Please try again.");const data=await r.json() as {songs:Song[];statuses:Record<string,{requested:boolean;played:boolean;playing?:boolean}>;playingNextSongId:string|null;playingLocation:PlayingLocation|null;requestsOpen:boolean;showLimit:PublicBudget};setPlayingLocation(data.playingLocation??null);setShowLimit(data.showLimit);setRequestsOpen(data.requestsOpen);setSongs(data.songs);setStatuses(data.statuses);setNextSongId(data.playingNextSongId??null);setError("");}catch(e){setError(e instanceof Error?e.message:"Unable to load songs");}finally{setLoading(false);}}
+ async function load(quiet=false){if(!quiet)setLoading(true);try{const r=await fetch("/api/catalog",{cache:"no-store"});if(!r.ok)throw new Error("The song list couldn’t load. Please try again.");const data=await r.json() as {songs:Song[];statuses:Record<string,{requested:boolean;played:boolean;playing?:boolean}>;playingNextSongId:string|null;playingLocation:PlayingLocation|null;requestsOpen:boolean;showLimit:PublicBudget};setShowLimit(data.showLimit);setRequestsOpen(data.requestsOpen);setSongs(data.songs);setStatuses(data.statuses);setNextSongId(data.playingNextSongId??null);setError("");}catch(e){setError(e instanceof Error?e.message:"Unable to load songs");}finally{setLoading(false);}}
  useEffect(()=>{load();loadProfile();const timer=setInterval(()=>{load(true);loadProfile();},5000);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{
   function onKey(event:KeyboardEvent){
@@ -64,7 +63,7 @@ export default function RequesterSongbook({embedded:embeddedProp=false}:{embedde
  function clearFilters(){setQuery("");setSet("All");setArtist("All");setShowFilter("all");setOnlyFavorites(false);}
  async function submit(){if(!selected||busy||!canRequest(selected))return;setBusy(true);setError("");try{const r=await fetch("/api/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({songId:selected.id,id:requestId,requesterName:requesterName.trim(),embedded})});const d=await r.json() as {error?:string;code?:string};if(d.code==="REQUESTS_CLOSED")setRequestsOpen(false);if(!r.ok)throw new Error(d.error||"Couldn’t send request. Try again.");setSuccess(`Your request for “${selected.title}” has been sent to Songbook!`);setSelected(null);await Promise.all([load(true),loadProfile(true)]);}catch(e){setError(e instanceof Error?e.message:"Unable to send request");}finally{setBusy(false);}}
  return <main ref={pageRef} className={`listener-page${embedded?" listener-embed":""}`} data-theme={profile?.profile?.theme||"ocean"}>{!embedded&&<div className="listener-logo-header"><SongbookBrand/></div>}
- <PlayingAt location={playingLocation}/>
+ <PlayingAt/>
  <div className="listener-top">
  <aside className="listener-status-panel listener-show-panel" aria-label="Show and request status">
  {nowPlaying&&<section className="now-playing-banner" role="status" aria-live="polite"><span className="playing-indicator" aria-hidden="true">♫</span><div><strong>Playing now</strong><p>♪ {nowPlaying.title} — {nowPlaying.artist} ♪</p></div></section>}

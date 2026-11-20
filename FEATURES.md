@@ -45,3 +45,7 @@ D1 holds shared requests, show state, song edits/lengths, matching data, profile
 The companion uses a revocable pairing key stored as a hash on the server. Retries do not replay newer requests or repeat announcements. A stale connection clears Playing now after about 20 seconds.
 
 The starter contains no personal catalog or artwork. The default generic chibi is reused by the basic reward slots, and can be replaced through Appearance.
+
+## Connection and excluded files
+
+Ignore this song remembers solo filenames you want to exclude; Allow matching restores an owner choice. Refresh connection keeps the saved key, waits for accepted companion playback, and recovers the latest recorded session without duplicating requests or played counts. Listener location updates poll separately under the header. The normal Dalamud installer feed provides general and compatible Tramatic companions.

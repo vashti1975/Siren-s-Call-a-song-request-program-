@@ -113,6 +113,20 @@
       "when": 1794780390417,
       "tag": "0015_striped_silver_surfer",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1795201353117,
+      "tag": "0016_living_serpent_society",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1795201906605,
+      "tag": "0017_lowly_tomas",
+      "breakpoints": true
     }
   ]
 }
