@@ -15,7 +15,7 @@ export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=
  return <details className="midibard-sync">
   <summary>♫ MidiBard Sync <span>{refreshPending?'Waiting for refresh':state?.connection?.lastSeen?'Connection received':state?.connection?.paired?'Waiting for companion':'Set up automatic played labels'}{state&&<> · {state.matchedSongCount} of {songs.length} songs matched · {state.matches?.length||0} saved filenames{state.unmatched.length>0&&<> · {state.unmatched.length} to match</>}</>}</span></summary>
   <div className="midibard-content" role="region" aria-label="MidiBard Sync controls" tabIndex={0}>
-   <p><strong>Dalamud installer</strong> — Install <strong>Siren’s Call Song Request Book</strong> through <code>/xlplugins</code> using the repository URL in Setup &amp; connection. The companion sends automatic /s announcements and live Playing now labels. Install it on your lead bard only.</p>
+   <p><strong>Dalamud installer</strong> — Install <strong>Siren's call Song Request Book</strong> through <code>/xlplugins</code> using the repository URL in Setup &amp; connection. The companion sends automatic /s announcements and live Playing now labels. Install it on your lead bard only.</p>
    {state?.connection?.lastSeen&&<p className="sync-last-contact">Last contact: {new Date(state.connection.lastSeen).toLocaleString()}.{state.connection.lastFile&&<><br/>Last detected: <strong>{state.connection.lastFile}</strong> — {state.connection.lastIgnored?'ignored':state.connection.lastMatch?`matched to ${state.connection.lastMatch}`:'needs matching below'}.</>}</p>}
    {!!state?.unmatched.length?<section aria-labelledby="sync-match-title">
     <h4 id="sync-match-title">Match detected songs ({state.unmatched.length})</h4>
@@ -54,7 +54,7 @@ export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=
     <p>Keep MidiBard 2 and the companion enabled on your lead bard’s PC. Only install the companion on one bard.</p>
     <div className="sync-command"><p>Add this URL in <code>/xlsettings</code> → <strong>Experimental</strong> → <strong>Custom Plugin Repositories</strong>, enable it, and save:</p><code>{installerFeed}</code><button className="edit-button" onClick={async()=>{try{await navigator.clipboard.writeText(installerFeed);setError('');}catch{setError('Select and copy the repository URL manually.');}}}>Copy repository URL</button></div>
     <ol>
-     <li>Open <code>/xlplugins</code>, find <strong>Siren’s Call Song Request Book</strong>, and install it.</li>
+     <li>Open <code>/xlplugins</code>, find <strong>Siren's call Song Request Book</strong>, and install it.</li>
      <li>When switching from Dev Tools, disable the development copy and remove its <strong>Dev Plugin Locations</strong> entry before enabling the installed copy. Keep your saved configuration.</li>
      <li>Keep MidiBard 2 enabled. Only run one companion on your lead bard.</li>
      <li>For first-time pairing, generate a connection key below and paste the command into game chat. Use Refresh connection for an existing connection.</li>
@@ -63,7 +63,7 @@ export default function MidiBardSync({songs,onChange}:{songs:Song[];onChange:()=
     <div className="queue-actions">
      {state?.connection?.paired?<button className="primary-button" disabled={busy} onClick={()=>action({action:'refresh'})}>Refresh connection</button>:<button className="primary-button" disabled={busy||!state} onClick={()=>action({action:'pair'})}>Generate connection key</button>}
     </div>
-    {connectionRefresh&&<p role="status" aria-live="polite">{refreshPending?Date.now()-connectionRefresh.requestedAt>20000?'Waiting for Tramatic Sync. Keep MidiBard 2 and Tramatic Sync enabled, then start a new song. Your key stays the same.':'Refresh requested. Waiting for the companion’s next playback update… Your key stays the same.':`Connection refreshed at ${new Date(connectionRefresh.confirmedAt!).toLocaleTimeString()}. Your existing key is still in use.`}</p>}
+    {connectionRefresh&&<p role="status" aria-live="polite">{refreshPending?Date.now()-connectionRefresh.requestedAt>20000?'Waiting for the companion. Keep MidiBard 2 and the companion enabled, then start a new song. Your key stays the same.':'Refresh requested. Waiting for the companion’s next playback update… Your key stays the same.':`Connection refreshed at ${new Date(connectionRefresh.confirmedAt!).toLocaleTimeString()}. Your existing key is still in use.`}</p>}
     {!!state?.connection?.paired&&<details className="sync-section">
      <summary>Connection key options</summary>
      <p>Replace the key only if it was lost, revoked, or shared. Copying a replacement into the game is required. Routine refreshes use the key already saved on your PC.</p>
