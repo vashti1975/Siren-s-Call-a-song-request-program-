@@ -1,6 +1,6 @@
 # MidiBard companion
 
-Install through the normal Dalamud plugin installer using the [installer and migration guide](PLUGIN-INSTALLER.md). The shared custom repository offers the configurable **Siren’s Call Song Request Book** companion and the compatible **Tramatic Sync** companion.
+Install **Siren's call Song Request Book** through the normal Dalamud plugin installer using the [installer and migration guide](PLUGIN-INSTALLER.md). The shared repository offers a configurable `SongbookSync` variant and the compatible `TramaticSync` variant for existing installations.
 
 The companion observes MidiBard 2 playback and sends filenames and playing state to a hosted songbook. It does not replace MidiBard or include its binaries or music. Run one companion on the lead bard. Source and the compiled releases use AGPL-3.0; third-party dependencies keep their own licenses.
 

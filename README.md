@@ -1,4 +1,4 @@
-# Siren's Call Song Request Book
+# Siren's call Song Request Book
 
 A basic, customizable song-request program for Final Fantasy XIV bards and bard bands.
 
@@ -11,7 +11,7 @@ This starter has an **empty catalog**, a simple slate-and-blue theme, and a gene
 - Optional listener profiles, favorites, music-note rewards, milestone stickers and simple collectible reward slots.
 - A compact Playing at feature with city choices, venue addresses and pasted FFXIV pin coordinates.
 - **Appearance controls** on the owner page: change title, subtitle, colors, logo, background image and default chibi, and optionally enable the animated music background. Images can be uploaded or supplied by URL.
-- Normal Dalamud installer support for the configurable Siren’s Call companion and the compatible Tramatic Sync variant, with Windows builds and versioned releases.
+- Normal Dalamud installer support for Siren's call Song Request Book, with general and compatible TramaticSync variants, Windows builds and versioned releases.
 - Persistent Ignore this song / Allow matching and same-key Refresh connection, with separate pending and confirmed connection status.
 - Database migrations, dependency lockfile, documentation and tests using invented fixtures.
 
@@ -60,7 +60,7 @@ Add this repository URL under `/xlsettings` → **Experimental** → **Custom Pl
 https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
 ```
 
-In `/xlplugins`, install **Siren’s Call Song Request Book** for a configurable hosted songbook, or **Tramatic Sync** when replacing the existing Tramatic development installation. Install one companion on the lead bard. Disable the development copy and remove its Dev Plugin Locations entry before enabling the installed copy. Keep the saved configuration; Tramatic Sync retains its internal name, `/tramaticsync` command and existing key format.
+In `/xlplugins`, install **Siren's call Song Request Book**. The general variant uses `SongbookSync`; existing Tramatic installations use the compatible `TramaticSync` variant. Install one companion on the lead bard. When moving from a development installation, disable that copy and remove its Dev Plugin Locations entry before enabling the installed copy. Keep the saved configuration; the compatible variant retains its `TramaticSync` internal name, `/tramaticsync` command and existing key format.
 
 The feed becomes usable after the first successful release build and public repository access. Each release includes compiler-built API 15 DLLs, matching manifests and checksums. In-game operation still needs verification in FFXIV. See the [installer guide](docs/PLUGIN-INSTALLER.md) for migration and recovery.
 

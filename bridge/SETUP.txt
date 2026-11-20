@@ -1,12 +1,12 @@
-SIREN'S CALL / TRAMATIC SYNC 1.3.0
+Siren's call Song Request Book 1.3.2
 
 NORMAL INSTALL
 Add this URL under /xlsettings > Experimental > Custom Plugin Repositories:
 https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
-Enable and save the repository. In /xlplugins install Siren's Call Song Request Book for a configurable hosted book, or Tramatic Sync for the existing Tramatic installation. Use one companion on your lead bard and keep MidiBard 2 enabled.
+Enable and save the repository. In /xlplugins install Siren's call Song Request Book. Choose SongbookSync for a configurable hosted book, or the compatible TramaticSync variant for the existing Tramatic installation. Use one companion on your lead bard and keep MidiBard 2 enabled.
 
 MIGRATE FROM DEV TOOLS
-Disable the development copy and remove its Dev Plugin Locations entry before enabling the normal installation. Keep connection.json and your old files locally. Tramatic Sync preserves its internal identity, /tramaticsync command, endpoint and saved key format. No replacement key is required when the existing configuration is present.
+Disable the development copy and remove its Dev Plugin Locations entry before enabling the normal installation. Keep connection.json and your old files locally. The TramaticSync variant preserves its internal identity, /tramaticsync command, endpoint and saved key format. No replacement key is required when the existing configuration is present.
 
 PAIRING
 General companion: /songbooksync HTTPS_URL TOKEN

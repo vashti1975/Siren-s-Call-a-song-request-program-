@@ -12,11 +12,11 @@ namespace SongbookSync;
 public sealed class Plugin : IDalamudPlugin {
 #if TRAMATIC_COMPANION
  const string CommandName="/tramaticsync";
- const string DisplayName="Tramatic Sync";
+ const string DisplayName="Siren's call Song Request Book";
  string Endpoint="https://tramatic-songbook.affectionategecko4.chatgpt.site/api/midibard";
 #else
  const string CommandName="/songbooksync";
- const string DisplayName="Siren's Call";
+ const string DisplayName="Siren's call Song Request Book";
  string Endpoint="";
 #endif
  readonly IDalamudPluginInterface pi;
@@ -51,16 +51,16 @@ public sealed class Plugin : IDalamudPlugin {
  double? Position(){var time=bardType?.GetProperty("CurrentPlaybackTime",Flags)?.GetValue(null);return time is TimeSpan span?span.TotalSeconds:null;}
  void Command(string command,string args){
   args=args.Trim();
-  if(args=="status"||args==""){chat.Print("["+DisplayName+" v1.3.1] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
-  if(args=="announcements on"||args=="announcements off"){announcements=args.EndsWith(" on");Save();chat.Print("[Songbook Sync] Say announcements "+(announcements?"on.":"off."));return;}
-  if(args=="disconnect"){token="";File.Delete(configPath);tracker.Baseline(CurrentPlayback());status="Disconnected.";chat.Print("[Songbook Sync] "+status);return;}
+  if(args=="status"||args==""){chat.Print("["+DisplayName+" v1.3.2] "+status+" Say announcements: "+(announcements?"on":"off"));return;}
+  if(args=="announcements on"||args=="announcements off"){announcements=args.EndsWith(" on");Save();chat.Print("["+DisplayName+"] Say announcements "+(announcements?"on.":"off."));return;}
+  if(args=="disconnect"){token="";File.Delete(configPath);tracker.Baseline(CurrentPlayback());status="Disconnected.";chat.Print("["+DisplayName+"] "+status);return;}
 #if TRAMATIC_COMPANION
   if(args.Length==64&&args.All(Uri.IsHexDigit))args=new Uri(Endpoint).GetLeftPart(UriPartial.Authority)+" "+args;
 #endif
   var pair=args.Split(' ',StringSplitOptions.RemoveEmptyEntries);
-  if(pair.Length!=2||!Uri.TryCreate(pair[0],UriKind.Absolute,out var target)||target.Scheme!="https"||!string.IsNullOrEmpty(target.UserInfo)||pair[1].Length!=64||!pair[1].All(Uri.IsHexDigit)){chat.Print("[Songbook Sync] Copy the full connection command from your owner songbook.");return;}
+  if(pair.Length!=2||!Uri.TryCreate(pair[0],UriKind.Absolute,out var target)||target.Scheme!="https"||!string.IsNullOrEmpty(target.UserInfo)||pair[1].Length!=64||!pair[1].All(Uri.IsHexDigit)){chat.Print("["+DisplayName+"] Copy the full connection command from your owner songbook.");return;}
   Endpoint=new Uri(target.GetLeftPart(UriPartial.Authority)+"/api/midibard").AbsoluteUri;token=pair[1];Save();FindBard();tracker.Baseline(IsPlaying()?CurrentPlayback():null);
-  status="Paired locally. Checking songbook connection…";chat.Print("[Songbook Sync] "+status);_=Send(null);
+  status="Paired locally. Checking songbook connection…";chat.Print("["+DisplayName+"] "+status);_=Send(null);
  }
  void Update(IFramework f){
   if(DateTime.UtcNow<nextPoll||busy||token.Length==0||Endpoint.Length==0)return;

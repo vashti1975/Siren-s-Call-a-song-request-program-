@@ -39,14 +39,14 @@ def prepare_release(repository):
     (output / 'pluginmaster.json').write_text(json.dumps(entries, indent=2)+'\n', encoding='utf-8')
     (output / 'SHA256SUMS.txt').write_text('\n'.join(checksums)+'\n', encoding='utf-8')
     feed = f'https://raw.githubusercontent.com/{repository}/main/pluginmaster.json'
-    notes = f'''Normal Dalamud installation for Siren's Call Song Request Book and Tramatic Sync {version}.
+    notes = f'''Normal Dalamud installation for Siren's call Song Request Book {version}.
 
 Add this URL in /xlsettings > Experimental > Custom Plugin Repositories:
 {feed}
 
 Then open /xlplugins and install ONE companion on the lead bard:
-- Siren's Call Song Request Book (SongbookSync): configurable hosted songbook; /songbooksync HTTPS_URL TOKEN.
-- Tramatic Sync (TramaticSync): compatible with the existing Tramatic installation and saved key; /tramaticsync status.
+- Siren's call Song Request Book (SongbookSync): configurable hosted songbook; /songbooksync HTTPS_URL TOKEN.
+- Siren's call Song Request Book (TramaticSync): compatible with the existing Tramatic installation and saved key; /tramaticsync status.
 
 Before moving from Dev Tools, disable the development copy and remove its Dev Plugin Locations entry. Keep your local configuration. Do not run the development and installed copies together. The Tramatic build retains its internal name and existing connection.json format; no key is shipped in these packages.
 

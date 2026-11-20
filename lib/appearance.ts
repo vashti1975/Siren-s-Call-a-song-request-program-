@@ -4,7 +4,7 @@ export type Appearance = {
   animatedBackground: boolean;
 };
 export const defaultAppearance: Appearance = {
-  title: "Siren's Call Song Request Book", subtitle: "A song for every adventurer",
+  title: "Siren's call Song Request Book", subtitle: "A song for every adventurer",
   accent: "#8eafd3", background: "#171d26", panel: "#232c38", text: "#edf1f6",
   logo: "", backgroundImage: "", chibi: "/default-chibi.png", animatedBackground: false,
 };

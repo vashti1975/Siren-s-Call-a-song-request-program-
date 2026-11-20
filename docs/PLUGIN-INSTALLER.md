@@ -6,12 +6,12 @@ Add this URL in `/xlsettings` → **Experimental** → **Custom Plugin Repositor
 https://raw.githubusercontent.com/vashti1975/Siren-s-Call-a-song-request-program-/main/pluginmaster.json
 ```
 
-Then open `/xlplugins` and install one companion on your lead bard:
+Then open `/xlplugins` and install one companion on your lead bard. Both variants now display **Siren's call Song Request Book**; existing installations retain their internal identity and saved settings:
 
 | Installer name | Internal name | Use |
 | --- | --- | --- |
-| Siren’s Call Song Request Book | SongbookSync | Any hosted copy of the reusable songbook; pair with `/songbooksync HTTPS_URL TOKEN`. |
-| Tramatic Sync | TramaticSync | The existing Tramatic songbook; retains `/tramaticsync`, its original endpoint, and saved key format. |
+| Siren's call Song Request Book | SongbookSync | Any hosted copy of the reusable songbook; pair with `/songbooksync HTTPS_URL TOKEN`. |
+| Siren's call Song Request Book | TramaticSync | The existing Tramatic songbook; retains `/tramaticsync`, its original endpoint, and saved key format. |
 
 MidiBard 2 must remain enabled. The website is still the owner/listener interface. This custom repository is separate from the official Dalamud plugin list and does not involve Penumbra.
 
@@ -20,12 +20,12 @@ MidiBard 2 must remain enabled. The website is still the owner/listener interfac
 1. Keep a local backup of the existing companion configuration. `connection.json` contains your private key; do not upload it.
 2. Disable the development instance and remove its DLL entry from **Dev Plugin Locations**. Keep the files until the replacement has been checked.
 3. Install the matching normal version in `/xlplugins`. Do not run both versions together.
-4. For Tramatic Sync, the normal version keeps the `TramaticSync` identity and configuration format. Use `/tramaticsync status` and the owner page’s **Refresh connection** before considering a new key. Do not delete the configuration when moving installations.
+4. For the compatible TramaticSync variant, the normal version keeps the `TramaticSync` identity and configuration format. Use `/tramaticsync status` and the owner page’s **Refresh connection** before considering a new key. Do not delete the configuration when moving installations.
 5. Play a new song and verify Playing now, request completion, and one `/s` announcement. Check pause/resume and a replay. If configuration is missing, use the existing saved pairing command if you have it; replace the key only when it is no longer available or accepted.
 
 ## Build and releases
 
-Both projects use `Dalamud.NET.Sdk/15.0.0`, .NET 10, and version 1.3.1. The Windows workflow downloads pinned official API 15 libraries, tests playback/announcement logic and installer packaging, and compiles both assemblies. Packaging checks the manifest’s internal name, assembly version and API against its project and only includes the plugin DLL, its generated manifest and AGPL license. No connection settings, keys, songs, private artwork or host libraries are distributed.
+Both projects use `Dalamud.NET.Sdk/15.0.0`, .NET 10, and version 1.3.2. The Windows workflow downloads pinned official API 15 libraries, tests playback/announcement logic and installer packaging, and compiles both assemblies. Packaging checks the manifest’s internal name, assembly version and API against its project and only includes the plugin DLL, its generated manifest and AGPL license. No connection settings, keys, songs, private artwork or host libraries are distributed.
 
 After successful compilation on main, the workflow publishes a versioned GitHub release and writes its two-entry `pluginmaster.json` to main. Install/update URLs point to the corresponding versioned ZIPs in that release. Failed builds do not update the feed. Existing release tags are not overwritten: increase both projects’ Version and AssemblyVersion for another release. The repository and release downloads must be public for Dalamud to fetch the feed without authentication.
 
